@@ -1,0 +1,183 @@
+voici ce qu'il y a dans le todo : Catégorie Module Taches Type Qui Estimation Tps passé Reste Avancement
+Backoffice Gestion Login Afficher le formulaire avec e-mail + mot de passe + bouton Se connecter Affichage ETU003388 120
+Backoffice Gestion Login Ajouter le lien Mot de passe oublié ? Affichage ETU003388 30
+Backoffice Gestion Login Colorer le bouton en vert quand les deux champs sont remplis Affichage ETU003388 30
+Backoffice Gestion Login Empecher le bouton tant que l’e-mail n’est pas valide Affichage ETU003388 60
+Backoffice Gestion Login Ajouter le message "Format d’e-mail incorrect" en rouge Affichage ETU003388 30
+Backoffice Gestion Login Envoyer (POST) e-mail + password à /api/auth/login Integration ETU003388 60
+Backoffice Gestion Login Afficher le spinner pendant l’appel Integration ETU003388 30
+Backoffice Gestion Login En cas d’erreur 401, afficher "Identifiants incorrects" Affichage ETU003388 30
+Backoffice Gestion Login En cas de succès, stocker le token dans localStorage Integration ETU003655 30
+Backoffice Gestion Login Rediriger vers /dashboard si login OK Integration ETU003655 30
+Backoffice Gestion Login Vérifier le token Firebase côté backend Metier ETU003314 180
+Backoffice Gestion Login Renvoyer 401 si token invalide Metier ETU003314 30
+Backoffice Gestion Login Ajouter bouton "Se déconnecter" en haut à droite Affichage ETU003655 30
+Backoffice Gestion Login Supprimer le token du localStorage Integration ETU003655 30
+Backoffice Gestion Login Rediriger vers /login Integration ETU003655 30
+Backoffice Gestion Inscription Afficher nom, prénom, e-mail, mot de passe, confirmation Affichage ETU003266 120
+Backoffice Gestion Inscription Ajouter case à cocher "J’accepte les CGU" Affichage ETU003266 30
+Backoffice Gestion Inscription Vérifier que les deux mots de passe sont identiques Affichage ETU003266 30
+Backoffice Gestion Inscription Afficher "Les mots de passe ne correspondent pas" Affichage ETU003266 30
+Backoffice Gestion Inscription Envoyer le formulaire vers /api/auth/register Integration ETU003266 60
+Backoffice Gestion Inscription Créer le compte dans Firebase Auth Metier ETU003314 120
+Backoffice Gestion Inscription Si e-mail déjà utilisé, renvoyer 409 Metier ETU003314 30
+Backoffice Gestion Inscription Afficher "Un e-mail de vérification a été envoyé" Affichage ETU003655 30
+Backoffice Gestion Profil Afficher nom, prénom, e-mail (non modifiable) Affichage ETU003388 120
+Backoffice Gestion Profil Ajouter bouton "Modifier" Affichage ETU003388 30
+Backoffice Gestion Profil Ouvrir un modal avec les champs pré-remplis Affichage ETU003388 60
+Backoffice Gestion Profil Bouton "Sauvegarder" grisé tant que rien n’a changé Affichage ETU003388 30
+Backoffice Gestion Profil Envoyer les nouvelles données à /api/users/me Integration ETU003314 60
+Backoffice Gestion Profil Mettre à jour Firebase + Postgres Metier ETU003314 60
+Backoffice Gestion Profil Afficher "Profil mis à jour" en vert pendant 3 s Affichage ETU003655 30
+Backoffice Gestion Signalements Tableau avec colonnes : date, statut, surface, budget Affichage ETU003266 180
+Backoffice Gestion Signalements Ajouter icône "en cours" / "terminé" en couleur Affichage ETU003266 60
+Backoffice Gestion Signalements Tri croissant/décroissant sur chaque colonne Affichage ETU003266 60
+Backoffice Gestion Signalements Pagination (10, 25, 50 lignes) Affichage ETU003266 60
+Backoffice Gestion Signalements Route GET /api/reports avec page & limite Metier ETU003314 60
+Backoffice Gestion Signalements Filtrer par statut (new, in_progress, done) Metier ETU003314 60
+Backoffice Gestion Signalements Bouton "Nouveau signalement" Affichage ETU003388 30
+Backoffice Gestion Signalements Ouvrir modal avec carte cliquable Affichage ETU003388 60
+Backoffice Gestion Signalements Champs : description, surface, budget, entreprise Affichage ETU003388 60
+Backoffice Gestion Signalements Quand on clique sur la carte, remplir lat/lng automatiquement Integration ETU003388 60
+Backoffice Gestion Signalements POST /api/reports avec uid, lat, lng, etc. Metier ETU003314 60
+Backoffice Gestion Signalements Si surface n’est pas un nombre, renvoyer 400 Metier ETU003314 30
+Backoffice Gestion Signalements Fermer le modal et rafraîchir la liste Integration ETU003655 30
+Backoffice Gestion Signalements Bouton "Marquer comme en cours" Affichage ETU003655 60
+Backoffice Gestion Signalements Bouton "Marquer comme terminé" Affichage ETU003655 60
+Backoffice Gestion Signalements PATCH /api/reports/:id/status Metier ETU003314 60
+Backoffice Gestion Signalements Bouton corbeille avec confirmation "Êtes-vous sûr ?" Affichage ETU003266 60
+Backoffice Gestion Signalements API DELETE /api/reports/:id (soft) Metier ETU003314 60
+Backoffice Tableau de bord KPI : nb signalements, surface totale, budget total Affichage ETU003388 120
+Backoffice Tableau de bord Barres : nb par statut Affichage ETU003388 120
+Backoffice Tableau de bord Route GET /api/stats renvoie les totaux Metier ETU003314 120
+Mobile Auth Mobile Champs e-mail + mot de passe + bouton "Se connecter" Affichage ETU003655 60
+Mobile Auth Mobile Appeler FirebaseAuth.instance.signInWithEmailAndPassword Integration ETU003655 60
+Mobile Carte Mobile ionic_map avec tuiles OpenStreetMap Affichage ETU003266 120
+Mobile Carte Mobile Ajouter un marker là où on tape Affichage ETU003266 60
+Mobile Carte Mobile Champs description, surface, budget, entreprise Affichage ETU003266 60
+Mobile Carte Mobile Appeler POST /api/reports avec le token Integration ETU003266 60
+Mobile Liste "Mes signalements" Liste ionic avec cards (date, statut, photo) Affichage ETU003388 120
+Mobile Liste "Mes signalements" GET /api/reports?uid=... avec header token Metier ETU003314 60
+Carte TileServer Docker Image tileserver-gl avec volume /data Integration ETU003314 60
+Carte TileServer Docker Extraire Antananarivo.mbtiles et le mettre dans ./data Metier ETU003314 60
+Carte Leaflet hors ligne Utiliser http://localhost:8080/data/Antananarivo/{z}/{x}/{y}.png Affichage ETU003266 60
+Global Swagger Ajouter swagger-ui-express sur /docs Integration ETU003314 30
+Global Swagger Documenter toutes les routes avec @swagger Metier ETU003314 120
+Global CI GitHub Lancer ionic build apk sur push Integration ETU003655 120
+Global CI GitHub Badge build + captures d’écran Affichage ETU003655 60
+Global APK ionic build Integration ETU003388 60
+Global APK Uploader l’APK dans GitHub Releases Integration ETU003388 30
+Backoffice Synchronisation Placer le bouton « Synchroniser » en haut à droite du dashboard Affichage ETU003266 30
+Backoffice Synchronisation Au clic, appeler GET /api/sync/firebase → récupérer les nouveaux signalements Integration ETU003314 60
+Backoffice Synchronisation Envoyer (POST) les modifs locales (statuts, infos) vers Firebase Integration ETU003314 60
+Backoffice Admin Page « Utilisateurs bloqués » : tableau + bouton « Débloquer » Affichage ETUprojet cloud 
+
+
+les etu sont les personne qui doivent faire le projet ;
+ voici ce qu'il y a dans projet cloud : Projet Cloud S5
+Travail en groupe de 4.
+Promotion 17
+v0
+Confidential - Not for Public Consumption or Distribution
+Objectifs
+• Mettre en place un projet de fournisseur
+d’identité sur un des plateformes suivantes
+(docker) :
+– Php mvc (pas de flightPhp)
+– Java
+– .Net
+– Node Js
+• API seulement (pas d’interface)
+Confidential - Not for Public Consumption or Distribution
+Module Authentification
+• On utilise Firebase s’il y a une connexion
+Internet ou une Base local dans docker (si pas
+de connexion)
+• Ci-dessous les fonctionnalités minimales
+– Authentification
+– Inscription
+– Modification infos users
+Confidential - Not for Public Consumption or Distribution
+Module Authentification
+• Ci-dessous les fonctionnalités minimales
+– Durée de vie des sessions
+– Limite des nombres ( paramétrable, par défaut 3 )
+de tentatives de connexion pour un compte
+• Un API REST peut réinitialiser le blocage pour un
+utilisateur donné
+– Documentation API via Swagger
+Confidential - Not for Public Consumption or Distribution
+Module Cartes
+• Installer un serveur de carte Offline sur Docker
+• Télécharger la ville d’Antananarivo avec les
+rues
+• Utiliser leaflet pour afficher/manipuler la carte
+dans l’application web
+Confidential - Not for Public Consumption or Distribution
+Module Web
+• C’est une application qui permet de signaler et
+de suivre les travaux routiers sur la ville
+d’Antananarivo
+Confidential - Not for Public Consumption or Distribution
+Module Web
+• Utiliser l’API Rest Authentification pour se
+logguer et créer un compte
+• 3 profils
+– Visiteur (sans compte)
+– Utilisateur ( création de compte )
+– Manager (compte à créer par défaut )
+Confidential - Not for Public Consumption or Distribution
+Module Web
+• Visiteurs
+– Voir la carte avec les différents points
+représentants les problèmes routiers
+Confidential - Not for Public Consumption or Distribution
+Module Web
+• Visiteurs
+– Lorsqu’on survole un point, on doit voir les infos
+sur le problème ( date, status (nouveau, en cours,
+terminé), surface en m2, budget, entreprise
+concerné)
+– Voir le tableau de récapitulation actuel ( Nb de
+point, total surface, avancement en %, total
+budget)
+Confidential - Not for Public Consumption or Distribution
+Module Web
+• Manager
+– Bouton synchronisation
+• Récupérer les signalements en ligne (firebase)
+• Envoi les données nécessaires en ligne (firebase) pour
+un affichage sur mobile
+– gestion des infos nécessaires sur chaque
+signalement (surface en m2, budget, entreprise
+concerné, …)
+– Modifier les statuts de chaque signalement
+Confidential - Not for Public Consumption or Distribution
+Module Mobile
+• Utilisateurs
+– Se loguer sur firebase en ligne
+– Signaler les problèmes routiers à partir du map
+(utiliser leaflet et openstreetmap en ligne)
+• Localisation
+– Afficher la carte et recap (cf fonctionnalités
+visiteurs)
+– Mettre un filtre : afficher mes signalements
+uniquement
+Confidential - Not for Public Consumption or Distribution
+Notes
+• Fonctionnalités
+• Code
+– Dans github ou gitlab public
+• Design
+• Suivi des taches
+• APK pour mobile
+• Documentation technique
+• Aléa possible
+Confidential - Not for Public Consumption or Distribution
+Contenu Documentation Technique
+• Projet
+– Mettre le MCD
+– Présenter les scénarios d’utilisations avec copie d’
+écrans
+• Liste des membres
+– Nom et prénoms et NumETU

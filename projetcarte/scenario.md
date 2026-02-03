@@ -1,6 +1,6 @@
 ## 7. Scénarios d'utilisation
 
-### Scénario 1 : Visiteur consulte la carte
+### Scénario 1 : Visiteur consulte la carte (Web)
 
 1. Accéder à http://localhost:5173
 2. La carte d'Antananarivo s'affiche avec les points de signalement
@@ -15,8 +15,7 @@
    - Surface totale
    - Budget total
    - Pourcentage d'avancement
-
-  
+   
 
 ### Scénario 2 : Manager gère les signalements
 
@@ -44,7 +43,7 @@
 
 1. Ouvrir l'application mobile
 2. Se connecter via Firebase
-3. Sur la carte, utiliser le bouton de géolocalisation (📍)
+3. Onglet **Carte** : utiliser le bouton de géolocalisation (📍)
 4. Ou cliquer directement sur la carte pour choisir un point
 5. Remplir le formulaire :
    - Description du problème
@@ -53,7 +52,26 @@
    - Entreprise (optionnel)
 6. Le signalement est envoyé à l'API
 
-### Scénario 5 : Déblocage d'un utilisateur
+### Scénario 5 : Utilisateur mobile consulte ses signalements
+
+1. Se connecter sur l'application mobile
+2. Onglet **Signalements** : voir la liste de ses signalements
+3. Filtrer par statut (nouveau/en cours/terminé)
+4. Voir les détails de chaque signalement
+
+### Scénario 6 : Utilisateur mobile consulte le récapitulatif
+
+1. Se connecter sur l'application mobile
+2. Onglet **Récap** : voir les statistiques globales
+   - Nombre total de signalements
+   - Surface totale (m²)
+   - Budget total (Ariary)
+   - Pourcentage d'avancement
+3. Voir la répartition par statut (nouveau/en cours/terminé)
+4. Visualiser la barre de progression globale
+5. Tirer vers le bas pour actualiser les données
+
+### Scénario 7 : Déblocage d'un utilisateur
 
 1. Un utilisateur échoue 3 fois sa connexion → compte bloqué
 2. Le manager se connecte sur l'application web

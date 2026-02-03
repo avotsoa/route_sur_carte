@@ -8,10 +8,22 @@ const userRoutes = require('./routes/users');
 const reportRoutes = require('./routes/reports');
 const statsRoutes = require('./routes/stats');
 const syncRoutes = require('./routes/sync');
+
 const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Proxy pour servir les tuiles offline via /tiles/
+// Désactivé en mode local sans Docker - le frontend utilisera OpenStreetMap
+// Pour activer: décommenter et lancer TileServer sur le port 8080
+/*
+app.use('/tiles', require('http-proxy-middleware').createProxyMiddleware({
+  target: 'http://localhost:8080/data/antananarivo',
+  pathRewrite: { '^/tiles': '' },
+  changeOrigin: true,
+}));
+*/
 
 // Middleware
 app.use(cors());
@@ -24,6 +36,7 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+
 app.use('/api/reports', reportRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/sync', syncRoutes);

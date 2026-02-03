@@ -30,9 +30,24 @@ function MapView() {
   const [reports, setReports] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [tileUrl, setTileUrl] = useState('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
 
   useEffect(() => {
     fetchData();
+  }, []);
+
+  // Gestion du fallback entre tuiles offline et online
+  useEffect(() => {
+    const offlineUrl = 'http://localhost:3000/tiles/{z}/{x}/{y}.png';
+    fetch(offlineUrl.replace('{z}', '13').replace('{x}', '4821').replace('{y}', '3142'))
+      .then((res) => {
+        if (res.ok) {
+          setTileUrl(offlineUrl);
+        }
+      })
+      .catch(() => {
+        // Garde l'URL OpenStreetMap par défaut
+      });
   }, []);
 
   const fetchData = async () => {
@@ -55,7 +70,7 @@ function MapView() {
     return labels[status];
   };
 
-  if (loading) {
+  if (loading || !tileUrl) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
         <div className="spinner"></div>
@@ -99,7 +114,7 @@ function MapView() {
             className="h-full w-full"
           >
             <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              url={tileUrl}
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             />
             {reports.map((report) => (

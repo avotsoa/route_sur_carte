@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, ChevronUp, ChevronDown, MapPin, X } from 'lucide-react';
+import { Plus, Trash2, ChevronUp, ChevronDown, MapPin, X, Edit } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -27,12 +27,20 @@ function Reports() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingReport, setEditingReport] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0 });
   const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'desc' });
   const [statusFilter, setStatusFilter] = useState('');
   const [position, setPosition] = useState(null);
   const [formData, setFormData] = useState({
+    description: '',
+    surface: '',
+    budget: '',
+    company: '',
+  });
+  const [editFormData, setEditFormData] = useState({
     description: '',
     surface: '',
     budget: '',
@@ -88,6 +96,36 @@ function Reports() {
       fetchReports();
     } catch (error) {
       console.error('Error deleting report:', error);
+    }
+  };
+
+  const openEditModal = (report) => {
+    setEditingReport(report);
+    setEditFormData({
+      description: report.description || '',
+      surface: report.surface || '',
+      budget: report.budget || '',
+      company: report.company || '',
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!editingReport) return;
+
+    try {
+      await api.put(`/api/reports/${editingReport.id}`, {
+        description: editFormData.description,
+        surface: editFormData.surface ? parseFloat(editFormData.surface) : null,
+        budget: editFormData.budget ? parseFloat(editFormData.budget) : null,
+        company: editFormData.company,
+      });
+      setShowEditModal(false);
+      setEditingReport(null);
+      fetchReports();
+    } catch (error) {
+      console.error('Error updating report:', error);
     }
   };
 
@@ -224,6 +262,13 @@ function Reports() {
                 </td>
                 {isManager && (
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
+                    <button
+                      onClick={() => openEditModal(report)}
+                      className="text-blue-600 hover:text-blue-800"
+                      title="Modifier"
+                    >
+                      <Edit className="w-4 h-4 inline" />
+                    </button>
                     {report.status !== 'in_progress' && (
                       <button
                         onClick={() => handleStatusChange(report.id, 'in_progress')}
@@ -382,6 +427,75 @@ function Reports() {
                 Supprimer
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Modification signalement */}
+      {showEditModal && editingReport && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h2 className="text-xl font-semibold">Modifier signalement #{editingReport.id}</h2>
+              <button onClick={() => setShowEditModal(false)} className="text-gray-500 hover:text-gray-700">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <form onSubmit={handleEditSubmit} className="p-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={editFormData.description}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  rows="3"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Surface (m²)</label>
+                  <input
+                    type="number"
+                    value={editFormData.surface}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, surface: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Budget (Ar)</label>
+                  <input
+                    type="number"
+                    value={editFormData.budget}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, budget: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Entreprise</label>
+                <input
+                  type="text"
+                  value={editFormData.company}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, company: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                />
+              </div>
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  Enregistrer
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

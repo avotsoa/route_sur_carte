@@ -1,0 +1,1 @@
+Quand j'ouvre le navigateur sur http://localhost:5173 pour voir l'application , je ne vois qu'une page blanche .

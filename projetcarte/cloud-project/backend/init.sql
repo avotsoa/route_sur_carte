@@ -5,15 +5,6 @@
 DROP TYPE IF EXISTS user_role CASCADE;
 DROP TYPE IF EXISTS report_status CASCADE;
 
-
-
--- pour voir ce qu'il y a dans la base de données
--- cd cloud-project/backend
--- node view-db.js
-
-
-
-
 -- Create enum for user roles
 CREATE TYPE user_role AS ENUM ('visitor', 'user', 'manager');
 

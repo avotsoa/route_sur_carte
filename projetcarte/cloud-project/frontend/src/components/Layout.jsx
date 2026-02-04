@@ -41,7 +41,8 @@ function Layout() {
   ];
 
   if (user?.role === 'manager') {
-    navItems.push({ path: '/blocked-users', icon: Users, label: 'Utilisateurs bloqués' });
+    navItems.push({ path: '/users', icon: Users, label: 'Utilisateurs' });
+    navItems.push({ path: '/blocked-users', icon: Users, label: 'Bloqués' });
   }
 
   return (

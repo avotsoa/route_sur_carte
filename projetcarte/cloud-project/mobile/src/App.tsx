@@ -1,11 +1,12 @@
 import { IonApp, IonRouterOutlet, IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { Route, Redirect } from 'react-router-dom';
-import { map, list, logIn } from 'ionicons/icons';
+import { map, list, logIn, statsChart } from 'ionicons/icons';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import MapPage from './pages/MapPage';
 import MyReports from './pages/MyReports';
+import Stats from './pages/Stats';
 
 setupIonicReact();
 
@@ -36,6 +37,7 @@ const AppTabs: React.FC = () => {
       <IonRouterOutlet>
         <Route exact path="/tabs/map" component={MapPage} />
         <Route exact path="/tabs/reports" component={MyReports} />
+        <Route exact path="/tabs/stats" component={Stats} />
         <Route exact path="/tabs">
           <Redirect to="/tabs/map" />
         </Route>
@@ -47,7 +49,11 @@ const AppTabs: React.FC = () => {
         </IonTabButton>
         <IonTabButton tab="reports" href="/tabs/reports">
           <IonIcon icon={list} />
-          <IonLabel>Mes signalements</IonLabel>
+          <IonLabel>Signalements</IonLabel>
+        </IonTabButton>
+        <IonTabButton tab="stats" href="/tabs/stats">
+          <IonIcon icon={statsChart} />
+          <IonLabel>Récap</IonLabel>
         </IonTabButton>
       </IonTabBar>
     </IonTabs>

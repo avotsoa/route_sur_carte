@@ -8,6 +8,7 @@ import Reports from './pages/Reports';
 import Profile from './pages/Profile';
 import MapView from './pages/MapView';
 import BlockedUsers from './pages/BlockedUsers';
+import UserManagement from './pages/UserManagement';
 
 function PrivateRoute({ children, requiredRole }) {
   const { user, loading } = useAuth();
@@ -80,6 +81,11 @@ function App() {
             <Route path="/profile" element={
               <PrivateRoute>
                 <Profile />
+              </PrivateRoute>
+            } />
+            <Route path="/users" element={
+              <PrivateRoute requiredRole="manager">
+                <UserManagement />
               </PrivateRoute>
             } />
             <Route path="/blocked-users" element={

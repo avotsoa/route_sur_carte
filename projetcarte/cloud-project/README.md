@@ -218,7 +218,3 @@ cloud-project/
 - Sans Firebase configuré, l'application fonctionne en mode local avec PostgreSQL
 - Les cartes offline nécessitent le fichier `antananarivo.mbtiles` dans `./data/`
 - Sans cartes offline, l'application utilise OpenStreetMap en ligne
-
-
-
- de backend  ; node run-init.js , fampidirana an'ilay  base ( ao anaty .env.example no modifiena ny information de connexion postgres )

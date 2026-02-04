@@ -49,9 +49,10 @@ router.get('/firebase', authenticateToken, requireRole('manager'), async (req, r
 
         if (existing.rows.length === 0) {
           // Insert new report
-          await db.query(
+          const result = await db.query(
             `INSERT INTO reports (uid, latitude, longitude, description, surface, budget, company, status, firebase_synced, created_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, $9)`,
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, $9)
+             RETURNING id`,
             [
               doc.id,
               data.latitude,
@@ -64,17 +65,43 @@ router.get('/firebase', authenticateToken, requireRole('manager'), async (req, r
               data.created_at ? new Date(data.created_at._seconds * 1000) : new Date(),
             ]
           );
+          
+          const reportId = result.rows[0].id;
+          
+          // Sync photos if available in Firebase
+          if (data.photos && Array.isArray(data.photos)) {
+            for (const photo_url of data.photos) {
+              await db.query(
+                'INSERT INTO report_photos (report_id, photo_url) VALUES ($1, $2)',
+                [reportId, photo_url]
+              );
+            }
+          }
+          
           imported++;
         } else {
-          // Update existing if Firebase data is newer
+          // Update existing
+          const reportId = existing.rows[0].id;
           await db.query(
             `UPDATE reports SET 
               latitude = $1, longitude = $2, description = $3, 
               surface = $4, budget = $5, company = $6, 
               firebase_synced = true
-             WHERE uid = $7`,
-            [data.latitude, data.longitude, data.description, data.surface, data.budget, data.company, doc.id]
+             WHERE id = $7`,
+            [data.latitude, data.longitude, data.description, data.surface, data.budget, data.company, reportId]
           );
+          
+          // Simple photo sync: clear and re-insert if changed
+          if (data.photos && Array.isArray(data.photos)) {
+            await db.query('DELETE FROM report_photos WHERE report_id = $1', [reportId]);
+            for (const photo_url of data.photos) {
+              await db.query(
+                'INSERT INTO report_photos (report_id, photo_url) VALUES ($1, $2)',
+                [reportId, photo_url]
+              );
+            }
+          }
+          
           updated++;
         }
       } catch (err) {
@@ -141,6 +168,13 @@ router.post('/to-firebase', authenticateToken, requireRole('manager'), async (re
 
     for (const report of result.rows) {
       try {
+        // Get photos for this report
+        const photosResult = await db.query(
+          'SELECT photo_url FROM report_photos WHERE report_id = $1',
+          [report.id]
+        );
+        const photos = photosResult.rows.map(p => p.photo_url);
+
         await firestore.collection('reports').doc(report.uid).set({
           latitude: report.latitude,
           longitude: report.longitude,
@@ -150,6 +184,7 @@ router.post('/to-firebase', authenticateToken, requireRole('manager'), async (re
           company: report.company,
           status: report.status,
           user_id: report.user_id,
+          photos: photos,
           created_at: admin.firestore.Timestamp.fromDate(new Date(report.created_at)),
           updated_at: admin.firestore.Timestamp.fromDate(new Date(report.updated_at)),
         }, { merge: true });

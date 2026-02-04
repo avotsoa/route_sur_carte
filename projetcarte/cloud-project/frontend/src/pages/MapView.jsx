@@ -130,6 +130,19 @@ function MapView() {
                     </div>
                     <div className="space-y-1 text-sm">
                       <p><strong>Date:</strong> {new Date(report.created_at).toLocaleDateString('fr-FR')}</p>
+                      {report.photos && report.photos.length > 0 && (
+                        <div className="flex gap-2 overflow-x-auto py-2 my-1">
+                          {report.photos.map((url, i) => (
+                            <img 
+                              key={i} 
+                              src={url} 
+                              alt="Travaux" 
+                              className="w-16 h-16 object-cover rounded shadow-sm border cursor-pointer hover:opacity-80"
+                              onClick={() => window.open(url, '_blank')}
+                            />
+                          ))}
+                        </div>
+                      )}
                       <p>
                         <strong>Statut:</strong>{' '}
                         <span className={`px-2 py-0.5 rounded text-xs ${

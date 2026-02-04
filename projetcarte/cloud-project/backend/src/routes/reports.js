@@ -87,7 +87,8 @@ router.get('/', optionalAuth, async (req, res) => {
     // Get reports
     params.push(limit, offset);
     const dataQuery = `
-      SELECT r.*, u.first_name, u.last_name, u.email as user_email
+      SELECT r.*, u.first_name, u.last_name, u.email as user_email,
+      (SELECT json_agg(p.photo_url) FROM report_photos p WHERE p.report_id = r.id) as photos
       FROM reports r
       LEFT JOIN users u ON r.user_id = u.id
       ${whereClause}
@@ -133,7 +134,8 @@ router.get('/', optionalAuth, async (req, res) => {
 router.get('/:id', optionalAuth, async (req, res) => {
   try {
     const result = await db.query(
-      `SELECT r.*, u.first_name, u.last_name, u.email as user_email
+      `SELECT r.*, u.first_name, u.last_name, u.email as user_email,
+       (SELECT json_agg(p.photo_url) FROM report_photos p WHERE p.report_id = r.id) as photos
        FROM reports r
        LEFT JOIN users u ON r.user_id = u.id
        WHERE r.id = $1 AND r.is_deleted = false`,
@@ -181,8 +183,10 @@ router.get('/:id', optionalAuth, async (req, res) => {
  *                 type: number
  *               company:
  *                 type: string
- *               photo_url:
- *                 type: string
+ *               photos:
+ *                 type: array
+ *                 items:
+ *                   type: string
  *     responses:
  *       201:
  *         description: Report created
@@ -196,6 +200,7 @@ router.post('/', authenticateToken, [
   body('surface').optional().isFloat({ min: 0 }).withMessage('Surface must be a positive number'),
   body('budget').optional().isFloat({ min: 0 }).withMessage('Budget must be a positive number'),
   body('company').optional().isString(),
+  body('photos').optional().isArray(),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -203,21 +208,46 @@ router.post('/', authenticateToken, [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { latitude, longitude, description, surface, budget, company, photo_url } = req.body;
+    const { latitude, longitude, description, surface, budget, company, photos } = req.body;
     const reportUid = uuidv4();
 
+    // Start transaction
+    await db.query('BEGIN');
+
     const result = await db.query(
-      `INSERT INTO reports (uid, user_id, latitude, longitude, description, surface, budget, company, photo_url)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO reports (uid, user_id, latitude, longitude, description, surface, budget, company)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
-      [reportUid, req.user.id, latitude, longitude, description, surface, budget, company, photo_url]
+      [reportUid, req.user.id, latitude, longitude, description, surface, budget, company]
+    );
+
+    const report = result.rows[0];
+
+    // Insert photos if any
+    if (photos && photos.length > 0) {
+      for (const photo_url of photos) {
+        await db.query(
+          'INSERT INTO report_photos (report_id, photo_url) VALUES ($1, $2)',
+          [report.id, photo_url]
+        );
+      }
+    }
+
+    await db.query('COMMIT');
+
+    // Get report with photos
+    const finalResult = await db.query(
+      `SELECT r.*, (SELECT json_agg(p.photo_url) FROM report_photos p WHERE p.report_id = r.id) as photos
+       FROM reports r WHERE r.id = $1`,
+      [report.id]
     );
 
     res.status(201).json({
       message: 'Report created successfully',
-      report: result.rows[0],
+      report: finalResult.rows[0],
     });
   } catch (error) {
+    await db.query('ROLLBACK');
     console.error('Create report error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }

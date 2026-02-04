@@ -17,15 +17,45 @@ import {
   IonFabButton,
   IonFabList,
   IonSpinner,
+  IonGrid,
+  IonRow,
+  IonCol,
+  IonImg,
+  IonThumbnail,
   useIonToast,
+  IonActionSheet,
 } from '@ionic/react';
-import { add, logOutOutline, locationOutline, locateOutline, navigateOutline } from 'ionicons/icons';
+import { 
+  add, 
+  logOutOutline, 
+  locationOutline, 
+  locateOutline, 
+  navigateOutline, 
+  cameraOutline, 
+  imageOutline, 
+  closeCircle,
+  trashOutline
+} from 'ionicons/icons';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Geolocation } from '@capacitor/geolocation';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { initializeApp } from 'firebase/app';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '../context/AuthContext';
 import api, { setAuthToken } from '../services/api';
 import 'leaflet/dist/leaflet.css';
+
+// Initialize Firebase for Storage (using same config as AuthContext)
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || '',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.appspot.com`,
+};
+
+const app = initializeApp(firebaseConfig, 'storage-app');
+const storage = getStorage(app);
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -44,6 +74,7 @@ interface Report {
   company: string;
   status: string;
   created_at: string;
+  photos?: string[];
 }
 
 const LocationPicker: React.FC<{ onLocationSelect: (lat: number, lng: number) => void }> = ({ onLocationSelect }) => {
@@ -91,6 +122,9 @@ const MapPage: React.FC = () => {
     budget: '',
     company: '',
   });
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [showActionSheet, setShowActionSheet] = useState(false);
   const [present] = useIonToast();
 
   useEffect(() => {
@@ -210,6 +244,64 @@ const MapPage: React.FC = () => {
     setShowModal(true);
   };
 
+  const takePhoto = async (source: CameraSource) => {
+    try {
+      const image = await Camera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.Base64,
+        source: source
+      });
+
+      if (image.base64String) {
+        uploadPhoto(image.base64String);
+      }
+    } catch (error) {
+      console.error('Camera error:', error);
+    }
+  };
+
+  const uploadPhoto = async (base64String: string) => {
+    setUploading(true);
+    try {
+      const fileName = `report_${Date.now()}.jpg`;
+      const storageRef = ref(storage, `reports/${fileName}`);
+      
+      // Convert base64 to blob
+      const byteCharacters = atob(base64String);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'image/jpeg' });
+
+      await uploadBytes(storageRef, blob);
+      const downloadURL = await getDownloadURL(storageRef);
+      
+      setPhotos(prev => [...prev, downloadURL]);
+      
+      present({
+        message: 'Photo ajoutée',
+        duration: 1500,
+        color: 'success',
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      present({
+        message: 'Erreur lors de l\'upload',
+        duration: 2000,
+        color: 'danger',
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async () => {
     if (!selectedPosition) return;
 
@@ -226,6 +318,7 @@ const MapPage: React.FC = () => {
         surface: formData.surface ? parseFloat(formData.surface) : null,
         budget: formData.budget ? parseFloat(formData.budget) : null,
         company: formData.company,
+        photos: photos,
       });
 
       present({
@@ -237,6 +330,7 @@ const MapPage: React.FC = () => {
       setShowModal(false);
       setSelectedPosition(null);
       setFormData({ description: '', surface: '', budget: '', company: '' });
+      setPhotos([]);
       fetchReports();
     } catch (error) {
       present({
@@ -313,9 +407,16 @@ const MapPage: React.FC = () => {
                 icon={createIcon(getStatusColor(report.status))}
               >
                 <Popup>
-                  <div>
+                  <div style={{ minWidth: '150px' }}>
                     <strong>#{report.id}</strong>
                     <p>{report.description || 'Aucune description'}</p>
+                    {report.photos && report.photos.length > 0 && (
+                      <div style={{ display: 'flex', gap: '5px', overflowX: 'auto', padding: '5px 0' }}>
+                        {report.photos.map((url, i) => (
+                          <img key={i} src={url} alt="Roadwork" style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px' }} />
+                        ))}
+                      </div>
+                    )}
                     {report.surface && <p>Surface: {report.surface} m²</p>}
                     {report.budget && <p>Budget: {report.budget} Ar</p>}
                   </div>
@@ -423,14 +524,93 @@ const MapPage: React.FC = () => {
               />
             </IonItem>
 
+            {/* Photos Section */}
+            <div style={{ marginTop: '20px' }}>
+              <IonLabel style={{ marginLeft: '16px', fontSize: '14px', color: '#666' }}>Photos</IonLabel>
+              <IonGrid>
+                <IonRow>
+                  {photos.map((url, index) => (
+                    <IonCol size="4" key={index}>
+                      <div style={{ position: 'relative' }}>
+                        <IonThumbnail style={{ width: '100%', height: '80px' }}>
+                          <IonImg src={url} />
+                        </IonThumbnail>
+                        <IonIcon
+                          icon={closeCircle}
+                          style={{
+                            position: 'absolute',
+                            top: '-8px',
+                            right: '-8px',
+                            fontSize: '24px',
+                            color: 'red',
+                            background: 'white',
+                            borderRadius: '50%'
+                          }}
+                          onClick={() => removePhoto(index)}
+                        />
+                      </div>
+                    </IonCol>
+                  ))}
+                  <IonCol size="4">
+                    <div
+                      onClick={() => setShowActionSheet(true)}
+                      style={{
+                        width: '100%',
+                        height: '80px',
+                        border: '2px dashed #ccc',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        color: '#666'
+                      }}
+                    >
+                      {uploading ? (
+                        <IonSpinner name="crescent" />
+                      ) : (
+                        <>
+                          <IonIcon icon={cameraOutline} style={{ fontSize: '24px' }} />
+                          <span style={{ fontSize: '10px' }}>Ajouter</span>
+                        </>
+                      )}
+                    </div>
+                  </IonCol>
+                </IonRow>
+              </IonGrid>
+            </div>
+
             <IonButton
               expand="block"
               onClick={handleSubmit}
-              disabled={!selectedPosition}
+              disabled={!selectedPosition || uploading}
               style={{ marginTop: '20px' }}
             >
-              Créer le signalement
+              {uploading ? 'Upload en cours...' : 'Créer le signalement'}
             </IonButton>
+
+            <IonActionSheet
+              isOpen={showActionSheet}
+              onDidDismiss={() => setShowActionSheet(false)}
+              header="Source de l'image"
+              buttons={[
+                {
+                  text: 'Appareil photo',
+                  icon: cameraOutline,
+                  handler: () => takePhoto(CameraSource.Camera),
+                },
+                {
+                  text: 'Galerie',
+                  icon: imageOutline,
+                  handler: () => takePhoto(CameraSource.Photos),
+                },
+                {
+                  text: 'Annuler',
+                  icon: closeCircle,
+                  role: 'cancel',
+                },
+              ]}
+            />
           </IonContent>
         </IonModal>
       </IonContent>

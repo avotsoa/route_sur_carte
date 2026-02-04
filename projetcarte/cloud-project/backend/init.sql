@@ -53,6 +53,14 @@ CREATE TABLE reports (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Table pour stocker plusieurs photos par signalement
+CREATE TABLE report_photos (
+    id SERIAL PRIMARY KEY,
+    report_id INTEGER REFERENCES reports(id) ON DELETE CASCADE,
+    photo_url TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Sessions table for token management
 CREATE TABLE sessions (
     id SERIAL PRIMARY KEY,
@@ -79,6 +87,16 @@ CREATE TABLE sync_log (
     status VARCHAR(50),
     error_message TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table pour stocker les tokens FCM des utilisateurs
+CREATE TABLE fcm_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    token TEXT NOT NULL UNIQUE,
+    device_info TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create indexes for better performance

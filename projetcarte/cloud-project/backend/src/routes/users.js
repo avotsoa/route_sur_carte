@@ -550,4 +550,56 @@ router.delete('/:id', authenticateToken, requireRole('manager'), async (req, res
   }
 });
 
+/**
+ * @swagger
+ * /api/users/fcm-token:
+ *   post:
+ *     summary: Register or update FCM token for push notifications
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *             properties:
+ *               token:
+ *                 type: string
+ *               device_info:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Token registered successfully
+ */
+router.post('/fcm-token', authenticateToken, [
+  body('token').notEmpty().withMessage('FCM token is required'),
+  body('device_info').optional().isString(),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { token, device_info } = req.body;
+
+    await db.query(
+      `INSERT INTO fcm_tokens (user_id, token, device_info)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (token) 
+       DO UPDATE SET user_id = $1, device_info = $3, updated_at = CURRENT_TIMESTAMP`,
+      [req.user.id, token, device_info]
+    );
+
+    res.json({ message: 'FCM token registered successfully' });
+  } catch (error) {
+    console.error('Register FCM token error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;

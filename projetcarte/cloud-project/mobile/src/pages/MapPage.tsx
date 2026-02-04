@@ -40,6 +40,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 're
 import L from 'leaflet';
 import { Geolocation } from '@capacitor/geolocation';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { PushNotifications } from '@capacitor/push-notifications';
+import { Device } from '@capacitor/device';
 import { initializeApp } from 'firebase/app';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '../context/AuthContext';
@@ -129,7 +131,62 @@ const MapPage: React.FC = () => {
 
   useEffect(() => {
     fetchReports();
+    setupPushNotifications();
   }, []);
+
+  const setupPushNotifications = async () => {
+    try {
+      // Request permission
+      let permStatus = await PushNotifications.checkPermissions();
+
+      if (permStatus.receive !== 'granted') {
+        permStatus = await PushNotifications.requestPermissions();
+      }
+
+      if (permStatus.receive !== 'granted') {
+        console.warn('Push notification permission denied');
+        return;
+      }
+
+      // Register with FCM
+      await PushNotifications.register();
+
+      // Listeners
+      PushNotifications.addListener('registration', async (token) => {
+        console.log('Push registration success, token: ' + token.value);
+        try {
+          const deviceInfo = await Device.getInfo();
+          await api.post('/api/users/fcm-token', {
+            token: token.value,
+            device_info: `${deviceInfo.model} (${deviceInfo.operatingSystem})`
+          });
+        } catch (err) {
+          console.error('Error saving FCM token to backend:', err);
+        }
+      });
+
+      PushNotifications.addListener('registrationError', (error) => {
+        console.error('Push registration error: ', error);
+      });
+
+      PushNotifications.addListener('pushNotificationReceived', (notification) => {
+        present({
+          message: `${notification.title}: ${notification.body}`,
+          duration: 4000,
+          color: 'primary',
+          position: 'top'
+        });
+        fetchReports(); // Refresh map data
+      });
+
+      PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+        console.log('Push action performed: ', notification);
+        fetchReports();
+      });
+    } catch (error) {
+      console.error('Error setting up push notifications:', error);
+    }
+  };
 
   const fetchReports = async () => {
     try {

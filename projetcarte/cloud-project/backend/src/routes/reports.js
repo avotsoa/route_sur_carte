@@ -3,6 +3,7 @@ const { body, query, validationResult } = require('express-validator');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../config/database');
 const { authenticateToken, optionalAuth, requireRole } = require('../middleware/auth');
+const { sendPushNotification } = require('../config/firebase');
 
 const router = express.Router();
 
@@ -398,7 +399,7 @@ router.patch('/:id/status', authenticateToken, requireRole('manager'), [
     const { status } = req.body;
 
     const result = await db.query(
-      'UPDATE reports SET status = $1 WHERE id = $2 AND is_deleted = false RETURNING *',
+      'UPDATE reports SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND is_deleted = false RETURNING *',
       [status, req.params.id]
     );
 
@@ -406,9 +407,33 @@ router.patch('/:id/status', authenticateToken, requireRole('manager'), [
       return res.status(404).json({ error: 'Report not found' });
     }
 
+    const updatedReport = result.rows[0];
+
+    // Send push notification to the user who created the report
+    try {
+      const tokensResult = await db.query(
+        'SELECT token FROM fcm_tokens WHERE user_id = $1',
+        [updatedReport.user_id]
+      );
+
+      if (tokensResult.rows.length > 0) {
+        const tokens = tokensResult.rows.map(t => t.token);
+        const statusLabels = { new: 'Nouveau', in_progress: 'En cours', done: 'Terminé' };
+        
+        await sendPushNotification(
+          tokens,
+          'Mise à jour de votre signalement',
+          `Le statut de votre signalement #${updatedReport.id} est passé à : ${statusLabels[status] || status}`,
+          { reportId: updatedReport.id.toString(), status }
+        );
+      }
+    } catch (pushError) {
+      console.error('Error sending push notification:', pushError);
+    }
+
     res.json({
       message: 'Status updated successfully',
-      report: result.rows[0],
+      report: updatedReport,
     });
   } catch (error) {
     console.error('Update status error:', error);

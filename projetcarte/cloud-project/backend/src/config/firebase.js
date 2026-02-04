@@ -86,6 +86,28 @@ const deleteFirebaseUser = async (uid) => {
   }
 };
 
+const sendPushNotification = async (tokens, title, body, data = {}) => {
+  if (!isFirebaseAvailable || !tokens || tokens.length === 0) {
+    return null;
+  }
+  try {
+    const message = {
+      notification: {
+        title,
+        body,
+      },
+      data,
+      tokens,
+    };
+
+    const response = await admin.messaging().sendEachForMulticast(message);
+    return response;
+  } catch (error) {
+    console.error('Push notification error:', error.message);
+    return null;
+  }
+};
+
 module.exports = {
   admin,
   firebaseApp,
@@ -94,4 +116,5 @@ module.exports = {
   createFirebaseUser,
   updateFirebaseUser,
   deleteFirebaseUser,
+  sendPushNotification,
 };
